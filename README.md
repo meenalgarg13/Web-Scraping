@@ -20,6 +20,10 @@ This repository contains Python scripts designed to automate data extraction fro
 
 For detailed usage instructions, refer to the respective code files (`Personal Information Extraction` and `email ids extraction`). The scripts are customizable and can be configured for specific extraction needs.
 
+## Purpose
+
+The extracted data serves as valuable insights for business analysis tasks during my internship. As a Business Analyst Intern, I utilize this information to meet specific client criteria and organizational requirements effectively.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to create an issue or pull request for any suggestions or improvements.
