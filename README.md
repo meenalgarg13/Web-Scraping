@@ -1,19 +1,29 @@
-<b>Web Scraping ASCP Website:</b>
+# Web Scraping ASCP Website
 
-<b>Overview:</b><br>
-This repository contains Python scripts designed to automate data extraction from the ASCP (American Society for Clinical Pathology) website. The scripts facilitate automated login, navigation to the resume search section, and extraction of data presented in table format. Additionally, it includes a feature to search for specific keywords within the extracted data.
+## Overview
 
-<b>Features:</b><br>
-1) Automated login using provided credentials.
-2) Extraction of data from the resume search section in table format.
-3) Pagination support to handle multiple pages of data.
-4) Keyword search functionality for specific domain extraction.
+This repository contains Python scripts designed to automate data extraction from the ASCP (American Society for Clinical Pathology) website. The scripts enable automated login, navigation to the resume search section, and extraction of data in table format. Additionally, they include features for extracting visible personal information and email IDs from individual profiles.
 
-<b>Code:</b><br>
-Please refer to the code file (code.py) provided in this repository for detailed implementation.
+## Features
 
-<b>Contributing:</b><br>
-Contributions are welcome! Please create an issue or contact the repository owner for any suggestions or improvements.
+- **Automated Login**: Handles login using provided credentials.
+- **Personal Information Extraction**: Extracts visible information from the resume search section.
+- **Email IDs Extraction**: Retrieves email IDs by navigating to individual profiles.
+- **Pagination Support**: Manages multiple pages of data extraction.
 
-<b>Contact:</b><br>
+## Code Files
+
+- **personal_info_extraction.py**: Extracts visible information from the resume search section.
+- **email_ids_extraction.py**: Retrieves email IDs from individual profiles.
+
+## Usage
+
+For detailed usage instructions, refer to the respective code files (`Personal Information Extraction` and `email ids extraction`). The scripts are customizable and can be configured for specific extraction needs.
+
+## Contributing
+
+Contributions are welcome! Please feel free to create an issue or pull request for any suggestions or improvements.
+
+## Contact
+
 For questions or suggestions, please open an issue or contact me at [meenalgarg.work12@gmail.com].
