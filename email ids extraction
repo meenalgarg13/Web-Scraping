@@ -1,0 +1,138 @@
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException
+
+# URL of the website
+url = "https://careers.ascp.org/hr/search/"
+
+# Start a web browser (Chrome in this example)
+driver = webdriver.Chrome()
+
+# Open the URL in the browser
+driver.get(url)
+
+# Wait for the email input field to be visible and fill it with a value
+email_input = WebDriverWait(driver, 10).until(
+    EC.visibility_of_element_located((By.XPATH, "//input[@name='employerUser.email']"))
+)
+email_input.send_keys("marketing@amk.global")  # Replace with your email address
+
+# Simulate clicking the sign-in button
+sign_in_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, "//input[@value='Sign In']"))
+)
+sign_in_button.click()
+
+# Function to perform search based on keyword
+def perform_search(keyword):
+    # Wait for the keyword input field to be visible and fill it with the keyword
+    keyword_input = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, "//*[@id='keywords']"))
+    )
+    keyword_input.clear()
+    keyword_input.send_keys(keyword)
+
+    # Simulate clicking the search button
+    search_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//*[@id='bti-rv-keyword-filter']/input[2]"))
+    )
+    
+    # Scroll the search button into view and click using JavaScript
+    driver.execute_script("arguments[0].scrollIntoView(true);", search_button)
+    driver.execute_script("arguments[0].click();", search_button)
+
+    # Add a short delay to ensure the search results are loaded
+    time.sleep(2)
+
+# Function to extract emails from each row
+def extract_emails_from_table():
+    emails = []  # Use a list to keep all emails including duplicates
+    while True:
+        try:
+            # Wait for the table rows to be present
+            table_body = WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@id='bti-hr-rv-table']/tbody"))
+            )
+
+            # Extract and print table data
+            rows = table_body.find_elements(By.TAG_NAME, "tr")
+            for i in range(len(rows)):
+                try:
+                    # Re-locate the table and rows
+                    table_body = WebDriverWait(driver, 20).until(
+                        EC.presence_of_element_located((By.XPATH, "//*[@id='bti-hr-rv-table']/tbody"))
+                    )
+                    rows = table_body.find_elements(By.TAG_NAME, "tr")
+                    
+                    if i >= len(rows):
+                        break  # Ensure we don't access out-of-range indices
+
+                    # Locate the name link in the current row
+                    name_link = rows[i].find_element(By.XPATH, ".//td[contains(@class, 'sorting_1')]")  # Replace with actual class or XPath to the name link
+                    driver.execute_script("arguments[0].click();", name_link)
+
+                    # Wait for the contact option/button to be clickable
+                    contact_button = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "//*[@id='btiContactLinkArea']/a"))
+                    )
+                    email = contact_button.get_attribute("href").replace("mailto:", "")
+                    emails.append(email)
+
+                    # Close the contact modal or navigate back
+                    close_button = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "/html/body/div[9]/div[1]/a/span"))
+                    )
+                    driver.execute_script("arguments[0].click();", close_button)
+
+                except (NoSuchElementException, StaleElementReferenceException):
+                    print("No contact button found or stale element reference for this row.")
+                    continue
+
+            # Check if there is a next page
+            next_button = WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@id='bti-hr-rv-table_next']"))
+            )
+            if "disabled" in next_button.get_attribute("class"):
+                break  # Break the loop if there is no next page
+
+            driver.execute_script("arguments[0].click();", next_button)
+
+            # Add a short delay to ensure the next page is fully loaded
+            time.sleep(2)
+
+        except TimeoutException:
+            print("Timed out waiting for element.")
+            break  # Break the loop if any element is not found in time
+
+        except NoSuchElementException:
+            print("Element not found.")
+            break  # Break the loop if any element is not found
+
+        except ElementClickInterceptedException:
+            print("Element click intercepted.")
+            break  # Break the loop if click is intercepted
+
+    return emails
+
+# Main function to execute the data extraction with optional search
+def main():
+    search_keyword = input("Enter a search keyword (leave blank to extract all records): ").strip()
+    if search_keyword:
+        perform_search(search_keyword)
+
+    # Extract emails from the table
+    emails = extract_emails_from_table()
+    print("Extracted Emails:", emails)
+    
+    # Print the count of the extracted emails
+    print("Total number of emails extracted:", len(emails))
+
+    # Close the browser
+    driver.quit()
+
+# Run the main function
+if __name__ == "__main__":
+    main()
