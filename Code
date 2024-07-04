@@ -1,0 +1,70 @@
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
+
+class Scraper:
+    def __init__(self):
+        self.driver = webdriver.Chrome()
+        self.wait = WebDriverWait(self.driver, 10)
+
+    def login(self):
+        url = "https://careers.ascp.org/hr/search/"
+        self.driver.get(url)
+        email_input = self.wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@name='employerUser.email']")))
+        email_input.send_keys("marketing@amk.global")  # Replace with your email address
+        sign_in_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@value='Sign In']")))
+        sign_in_button.click()
+
+    def extract_data_from_row(self, row):
+        cols = row.find_elements(By.TAG_NAME, "td")
+        name = cols[2].text.strip()
+        title = cols[3].text.strip()
+        location = cols[4].text.strip()
+        salary = cols[5].text.strip()
+        return name, title, location, salary
+
+    def extract_data_from_current_page(self):
+        table_body = self.wait.until(EC.presence_of_element_located((By.XPATH, "//*[@id='bti-hr-rv-table']/tbody")))
+        rows = table_body.find_elements(By.TAG_NAME, "tr")
+        return [self.extract_data_from_row(row) for row in rows]
+
+    def extract_data_from_all_pages(self):
+        all_data = []
+        while True:
+            all_data.extend(self.extract_data_from_current_page())
+            next_button = self.driver.find_element(By.XPATH, "//*[@id='bti-hr-rv-table_next']")
+            if "disabled" in next_button.get_attribute("class"):
+                break
+            self.driver.execute_script("arguments[0].click();", next_button)
+            time.sleep(2)  # Ensure the next page is fully loaded
+        return all_data
+
+    def perform_search(self, keyword):
+        keyword_input = self.wait.until(EC.visibility_of_element_located((By.XPATH, "//*[@id='keywords']")))
+        keyword_input.clear()
+        keyword_input.send_keys(keyword)
+        search_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='bti-rv-keyword-filter']/input[2]")))
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", search_button)
+        self.driver.execute_script("arguments[0].click();", search_button)
+        time.sleep(2)  # Ensure the search results are loaded
+
+    def scrape(self):
+        search_keyword = input("Enter a search keyword (leave blank to extract all records): ").strip()
+        if search_keyword:
+            self.perform_search(search_keyword)
+        all_data = self.extract_data_from_all_pages()
+        for index, record in enumerate(all_data, start=1):
+            print(f"{index}. {record}")
+        print("Total Records Extracted:", len(all_data))
+
+    def close(self):
+        self.driver.quit()
+
+if __name__ == "__main__":
+    scraper = Scraper()
+    scraper.login()
+    scraper.scrape()
+    scraper.close()
